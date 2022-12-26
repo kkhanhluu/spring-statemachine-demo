@@ -29,7 +29,7 @@ public class PaymentStateChangeInterceptor extends StateMachineInterceptorAdapte
 			Optional
 					.ofNullable(Long.parseLong((String) msg.getHeaders().getOrDefault(PaymentServiceImpl.HEADER_ID, "-1L")))
 					.ifPresent(paymentId -> {
-						System.out.println("Interceptio was called: " + state.getId());
+						System.out.println("Interceptor was called: " + state.getId());
 						Payment payment = paymentRepository.findById(paymentId).orElseThrow();
 						payment.setState(state.getId());
 						paymentRepository.save(payment);

@@ -11,6 +11,7 @@ import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
+import org.springframework.statemachine.guard.Guard;
 import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.state.State;
 
@@ -35,7 +36,7 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Paymen
 	@Override
 	public void configure(StateMachineTransitionConfigurer<PaymentState, PaymentEvent> transitions) throws Exception {
 		transitions.withExternal().source(PaymentState.NEW).target(PaymentState.NEW).event(PaymentEvent.PRE_AUTHORIZE)
-				.action(preAuthAction())
+				.action(preAuthAction()).guard(paymentIdGuard())
 				.and().withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH)
 				.event(PaymentEvent.PRE_AUTH_APPROVED)
 				.and().withExternal().source(PaymentState.NEW).target(PaymentState.PRE_AUTH_ERROR)
@@ -53,6 +54,12 @@ public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<Paymen
 
 		config.withConfiguration()
 				.listener(adapter);
+	}
+
+	private Guard<PaymentState, PaymentEvent> paymentIdGuard() {
+		return context -> {
+			return context.getMessageHeader(PaymentServiceImpl.HEADER_ID) != null;
+		};
 	}
 
 	public Action<PaymentState, PaymentEvent> preAuthAction() {
